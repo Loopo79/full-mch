@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field
 from typing import Optional, List, Literal
 from enum import Enum
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 import asyncio
 
 # ============================================================================
@@ -182,7 +182,7 @@ async def root():
 async def health_check():
     return {
         "status": "healthy",
-        "timestamp": datetime.utcnow().isoformat()
+        "timestamp": datetime.now(timezone.utc).isoformat()
     }
 
 
@@ -205,7 +205,7 @@ async def harmonize_material(material: MaterialInput):
         "id": material_id,
         "input": material.dict(),
         "result": result.dict(),
-        "timestamp": datetime.utcnow().isoformat()
+        "timestamp": datetime.now(timezone.utc).isoformat()
     })
     
     return result
@@ -288,7 +288,7 @@ async def upload_csv_file(
     background_tasks: BackgroundTasks,
     file: UploadFile = File(..., description="CSV file containing material data")
 ):
-    if not file.filename.lower().endswith('.csv'):
+    if not file.filename or not file.filename.lower().endswith('.csv'):
         raise HTTPException(status_code=400, detail="Only CSV files are allowed")
     
     try:
@@ -308,7 +308,7 @@ async def upload_csv_file(
             "column_count": len(header),
             "columns": header,
             "content": content,
-            "uploaded_at": datetime.utcnow().isoformat()
+            "uploaded_at": datetime.now(timezone.utc).isoformat()
         }
         
         return CSVUploadResponse(
@@ -322,6 +322,8 @@ async def upload_csv_file(
         
     except UnicodeDecodeError:
         raise HTTPException(status_code=400, detail="Unable to decode CSV file. Please ensure it's UTF-8 encoded")
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error processing file: {str(e)}")
 
@@ -347,7 +349,7 @@ async def process_csv_harmonization(
         "file_id": request.fileId,
         "column_mapping": request.columnMapping.dict(),
         "status": "processing",
-        "created_at": datetime.utcnow().isoformat(),
+        "created_at": datetime.now(timezone.utc).isoformat(),
         "total_records": session["row_count"]
     }
     
@@ -371,7 +373,7 @@ async def process_batch_async(job_id: str, file_id: str, mapping: ColumnMapping)
     
     if job_id in harmonization_jobs:
         harmonization_jobs[job_id]["status"] = "completed"
-        harmonization_jobs[job_id]["completed_at"] = datetime.utcnow().isoformat()
+        harmonization_jobs[job_id]["completed_at"] = datetime.now(timezone.utc).isoformat()
 
 
 @app.get("/jobs/{job_id}")
@@ -426,7 +428,7 @@ class MLService:
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(
-        app,
+        "main:app",
         host="0.0.0.0",
         port=8000,
         reload=True

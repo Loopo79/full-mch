@@ -13,6 +13,7 @@ import {
 import type { CSVData, CSVFileInfo, ColumnMapping } from "../types/csv";
 import { parseCSV } from "../utils/csvParser";
 import styles from "./CSVProcessing.module.css";
+import { uploadCSV, harmonizeCSV, getJobStatus } from "../services/materialService";
 
 const MAPPING_FIELDS = [
     {
@@ -56,6 +57,10 @@ const CSVProcessing = () => {
         category: "",
     });
     const [mappingError, setMappingError] = useState("");
+    const [uploading, setUploading] = useState(false);
+    const [processing, setProcessing] = useState(false);
+    const [jobId, setJobId] = useState<string | null>(null);
+    const [jobStatus, setJobStatus] = useState<string | null>(null);
 
     const detectColumn = (columns: CSVData["columns"], keywords: string[]) => {
         const column = columns.find((col) =>
@@ -66,69 +71,80 @@ const CSVProcessing = () => {
         return column?.name || "";
     };
 
-    const handleFile = (file: File) => {
+    const handleFile = async (file: File) => {
         setError("");
         if (!file.name.toLowerCase().endsWith(".csv")) {
             setError("Please select a valid .csv file.");
             return;
         }
 
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            const result = event.target?.result;
-            if (typeof result !== "string") {
-                setError("Unable to read the selected file.");
-                return;
-            }
-
-            try {
-                const parsedData = parseCSV(result);
-                if (parsedData.columns.length === 0) {
-                    setError("The CSV file appears to be empty.");
+        setUploading(true);
+        try {
+            // Upload file to backend
+            const uploadResult = await uploadCSV(file);
+            
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const result = event.target?.result;
+                if (typeof result !== "string") {
+                    setError("Unable to read the selected file.");
                     return;
                 }
 
-                setCsvData(parsedData);
-                setColumnMapping({
-                    materialName: detectColumn(parsedData.columns, [
-                        "material name",
-                        "material",
-                        "item",
-                        "product",
-                    ]),
-                    description: detectColumn(parsedData.columns, [
-                        "description",
-                        "details",
-                        "material description",
-                    ]),
-                    existingCode: detectColumn(parsedData.columns, [
-                        "existing code",
-                        "material code",
-                        "code",
-                        "item code",
-                    ]),
-                    category: detectColumn(parsedData.columns, [
-                        "category",
-                        "group",
-                        "material group",
-                        "type",
-                    ]),
-                });
-                setMappingError("");
-                setFileInfo({
-                    name: file.name,
-                    size: file.size,
-                    rows: parsedData.rows.length,
-                    columns: parsedData.columns.length,
-                });
-            } catch {
-                setError("Unable to parse CSV structure.");
-            }
-        };
+                try {
+                    const parsedData = parseCSV(result);
+                    if (parsedData.columns.length === 0) {
+                        setError("The CSV file appears to be empty.");
+                        return;
+                    }
 
-        reader.onerror = () =>
-            setError("An error occurred while reading the file.");
-        reader.readAsText(file);
+                    setCsvData(parsedData);
+                    setColumnMapping({
+                        materialName: detectColumn(parsedData.columns, [
+                            "material name",
+                            "material",
+                            "item",
+                            "product",
+                        ]),
+                        description: detectColumn(parsedData.columns, [
+                            "description",
+                            "details",
+                            "material description",
+                        ]),
+                        existingCode: detectColumn(parsedData.columns, [
+                            "existing code",
+                            "material code",
+                            "code",
+                            "item code",
+                        ]),
+                        category: detectColumn(parsedData.columns, [
+                            "category",
+                            "group",
+                            "material group",
+                            "type",
+                        ]),
+                    });
+                    setMappingError("");
+                    setFileInfo({
+                        name: file.name,
+                        size: file.size,
+                        rows: parsedData.rows.length,
+                        columns: parsedData.columns.length,
+                    });
+                    // Store fileId for later harmonization
+                    (window as any).__currentFileId = uploadResult.fileId;
+                } catch {
+                    setError("Unable to parse CSV structure.");
+                }
+            };
+            reader.onerror = () =>
+                setError("An error occurred while reading the file.");
+            reader.readAsText(file);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "Failed to upload file");
+        } finally {
+            setUploading(false);
+        }
     };
 
     const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -169,7 +185,7 @@ const CSVProcessing = () => {
         setMappingError("");
     };
 
-    const handleContinue = () => {
+    const handleContinue = async () => {
         if (!columnMapping.materialName) {
             setMappingError("Please select a column for Material Name.");
             return;
@@ -179,7 +195,36 @@ const CSVProcessing = () => {
             return;
         }
         setMappingError("");
-        console.log("Column Mapping Submitted:", columnMapping);
+        
+        // Start harmonization process
+        const fileId = (window as any).__currentFileId;
+        if (!fileId) {
+            setError("No file uploaded. Please upload a CSV file first.");
+            return;
+        }
+
+        setProcessing(true);
+        try {
+            const result = await harmonizeCSV(fileId, columnMapping);
+            setJobId(result.jobId);
+            setJobStatus(result.status);
+            
+            // Poll for job status
+            const checkStatus = async () => {
+                const status = await getJobStatus(result.jobId);
+                setJobStatus(status.status);
+                if (status.status === 'completed') {
+                    setProcessing(false);
+                    alert(`Harmonization completed! Processed ${status.total_records} records.`);
+                } else if (status.status === 'processing') {
+                    setTimeout(checkStatus, 2000);
+                }
+            };
+            setTimeout(checkStatus, 2000);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "Failed to start harmonization");
+            setProcessing(false);
+        }
     };
 
     const formatFileSize = (bytes: number) => {
@@ -219,12 +264,19 @@ const CSVProcessing = () => {
                                 onDrop={handleDrop}
                                 onClick={() => fileInputRef.current?.click()}
                             >
+                                {uploading && (
+                                    <div className={styles.uploadingOverlay}>
+                                        <div className={styles.spinner} />
+                                        <p>Uploading file...</p>
+                                    </div>
+                                )}
                                 <input
                                     ref={fileInputRef}
                                     type="file"
                                     accept=".csv,text/csv"
                                     onChange={handleFileChange}
                                     hidden
+                                    disabled={uploading}
                                 />
                                 <div className={styles.uploadIconBadge}>
                                     <UploadCloud size={20} />

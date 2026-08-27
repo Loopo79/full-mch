@@ -5,7 +5,8 @@ export const api = {
     const response = await fetch(`${API_URL}${endpoint}`)
 
     if (!response.ok) {
-      throw new Error(`API request failed: ${response.status}`)
+      const errorData = await response.json().catch(() => ({}))
+      throw new Error(`API request failed: ${response.status} - ${errorData.detail || response.statusText}`)
     }
 
     return response.json()
@@ -13,18 +14,39 @@ export const api = {
 
   async post<T>(
     endpoint: string,
-    data: unknown,
+    data?: unknown,
   ): Promise<T> {
     const response = await fetch(`${API_URL}${endpoint}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(data),
+      body: data ? JSON.stringify(data) : undefined,
     })
 
     if (!response.ok) {
-      throw new Error(`API request failed: ${response.status}`)
+      const errorData = await response.json().catch(() => ({}))
+      throw new Error(`API request failed: ${response.status} - ${errorData.detail || response.statusText}`)
+    }
+
+    return response.json()
+  },
+
+  async uploadFile<T>(
+    endpoint: string,
+    file: File,
+  ): Promise<T> {
+    const formData = new FormData()
+    formData.append('file', file)
+
+    const response = await fetch(`${API_URL}${endpoint}`, {
+      method: 'POST',
+      body: formData,
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      throw new Error(`API request failed: ${response.status} - ${errorData.detail || response.statusText}`)
     }
 
     return response.json()

@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
     ArrowUpRight,
@@ -10,13 +11,107 @@ import {
 } from "lucide-react";
 
 import styles from "./Dashboard.module.css";
+import { getDashboardStats, getRecentActivity } from "../services/materialService";
 
 const Dashboard = () => {
     const navigate = useNavigate();
+    const [stats, setStats] = useState<{
+        totalMaterials: number;
+        harmonizedCount: number;
+        harmonizedPercentage: number;
+        pendingReview: number;
+        pendingReviewPercentage: number;
+        processedFiles: number;
+        avgFilesPerDay: number;
+        aiMatchAccuracy: number;
+    } | null>(null);
+    const [activity, setActivity] = useState<Array<{
+        material: string;
+        originalCode: string;
+        harmonizedCode: string;
+        status: 'Harmonized' | 'Review' | 'Unmatched';
+        confidence: number;
+    }>>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        const loadData = async () => {
+            try {
+                const [statsData, activityData] = await Promise.all([
+                    getDashboardStats(),
+                    getRecentActivity(5)
+                ]);
+                setStats(statsData);
+                setActivity(activityData.items);
+            } catch (err) {
+                setError(err instanceof Error ? err.message : 'Failed to load data');
+            } finally {
+                setLoading(false);
+            }
+        };
+        loadData();
+    }, []);
 
     const handleProcessNewFile = () => {
         navigate("/csv");
     };
+
+    if (loading) {
+        return (
+            <div className="page">
+                <div className={styles.dashboardHeader}>
+                    <h1>Loading Dashboard...</h1>
+                </div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="page">
+                <div className={styles.dashboardHeader}>
+                    <h1>Error Loading Dashboard</h1>
+                    <p style={{ color: 'red' }}>{error}</p>
+                </div>
+            </div>
+        );
+    }
+
+    const displayStats = stats || {
+        totalMaterials: 1248,
+        harmonizedCount: 1096,
+        harmonizedPercentage: 87.8,
+        pendingReview: 87,
+        pendingReviewPercentage: 7.0,
+        processedFiles: 65,
+        avgFilesPerDay: 2.1,
+        aiMatchAccuracy: 94.6
+    };
+
+    const displayActivity = activity.length > 0 ? activity : [
+        {
+            material: "Stainless Steel Sheet",
+            originalCode: "MAT-2048",
+            harmonizedCode: "SS-304-SHT",
+            status: "Harmonized",
+            confidence: 98
+        },
+        {
+            material: "Industrial Rubber Seal",
+            originalCode: "MAT-1982",
+            harmonizedCode: "RBR-SEAL-IND",
+            status: "Harmonized",
+            confidence: 96
+        },
+        {
+            material: "Aluminium Rod",
+            originalCode: "MAT-1756",
+            harmonizedCode: "AL-ROD-6061",
+            status: "Review",
+            confidence: 82
+        },
+    ];
 
     return (
         <div className="page">
@@ -54,7 +149,7 @@ const Dashboard = () => {
                     </div>
 
                     <div className={styles.statBody}>
-                        <strong className={styles.statValue}>1,248</strong>
+                        <strong className={styles.statValue}>{displayStats.totalMaterials.toLocaleString()}</strong>
                     </div>
 
                     {/* Reserved baseline space to preserve card height & alignment */}
@@ -67,18 +162,18 @@ const Dashboard = () => {
                 <div className={styles.statCard}>
                     <div className={styles.statHeader}>
                         <span className={styles.statLabel}>Harmonized</span>
-                        <span className={styles.statPercentage}>87.8%</span>
+                        <span className={styles.statPercentage}>{displayStats.harmonizedPercentage.toFixed(1)}%</span>
                     </div>
 
                     <div className={styles.statBody}>
-                        <strong className={styles.statValue}>1,096</strong>
+                        <strong className={styles.statValue}>{displayStats.harmonizedCount.toLocaleString()}</strong>
                     </div>
 
                     <div className={styles.statFooter}>
                         <div className={styles.progressTrack}>
                             <div
                                 className={styles.progressBar}
-                                style={{ width: "87.8%" }}
+                                style={{ width: `${displayStats.harmonizedPercentage}%` }}
                             />
                         </div>
                     </div>
@@ -91,12 +186,12 @@ const Dashboard = () => {
                     </div>
 
                     <div className={styles.statBody}>
-                        <strong className={styles.statValue}>87</strong>
+                        <strong className={styles.statValue}>{displayStats.pendingReview.toLocaleString()}</strong>
                     </div>
 
                     <div className={styles.statFooter}>
                         <span className={styles.statSubtext}>
-                            7.0% requires verification
+                            {displayStats.pendingReviewPercentage.toFixed(1)}% requires verification
                         </span>
                     </div>
                 </div>
@@ -110,12 +205,12 @@ const Dashboard = () => {
                     </div>
 
                     <div className={styles.statBody}>
-                        <strong className={styles.statValue}>65</strong>
+                        <strong className={styles.statValue}>{displayStats.processedFiles.toLocaleString()}</strong>
                     </div>
 
                     <div className={styles.statFooter}>
                         <span className={styles.statSubtext}>
-                            Avg. 2.1 files per day
+                            Avg. {displayStats.avgFilesPerDay} files per day
                         </span>
                     </div>
                 </div>
@@ -170,17 +265,17 @@ const Dashboard = () => {
                     <div className={styles.overviewSummary}>
                         <div>
                             <span>Total Processed</span>
-                            <strong>1,248</strong>
+                            <strong>{displayStats.totalMaterials.toLocaleString()}</strong>
                         </div>
 
                         <div>
                             <span>Successfully Matched</span>
-                            <strong>1,096</strong>
+                            <strong>{displayStats.harmonizedCount.toLocaleString()}</strong>
                         </div>
 
                         <div>
                             <span>Match Rate</span>
-                            <strong>87.8%</strong>
+                            <strong>{displayStats.harmonizedPercentage.toFixed(1)}%</strong>
                         </div>
                     </div>
                 </div>
@@ -203,7 +298,7 @@ const Dashboard = () => {
                     <div className={styles.aiStat}>
                         <div>
                             <span>AI Match Accuracy</span>
-                            <strong>94.6%</strong>
+                            <strong>{displayStats.aiMatchAccuracy.toFixed(1)}%</strong>
                         </div>
 
                         <div className={styles.progress}>
@@ -243,78 +338,36 @@ const Dashboard = () => {
                         <span>Confidence</span>
                     </div>
 
-                    <div className={styles.tableRow}>
-                        <div className={styles.materialName}>
-                            <div className={styles.tableIcon}>
-                                <Package size={15} />
+                    {displayActivity.map((item, index) => (
+                        <div key={index} className={styles.tableRow}>
+                            <div className={styles.materialName}>
+                                <div className={styles.tableIcon}>
+                                    <Package size={15} />
+                                </div>
+
+                                <div>
+                                    <strong>{item.material}</strong>
+                                    <small>Material Category</small>
+                                </div>
                             </div>
 
-                            <div>
-                                <strong>Stainless Steel Sheet</strong>
-                                <small>Metal Materials</small>
-                            </div>
+                            <span>{item.originalCode}</span>
+                            <span>{item.harmonizedCode}</span>
+
+                            <span
+                                className={`${styles.status} ${
+                                    item.status === 'Harmonized' ? styles.completed :
+                                    item.status === 'Review' ? styles.review : styles.unmatched
+                                }`}
+                            >
+                                {item.status === 'Harmonized' ? <CheckCircle2 size={13} /> :
+                                 item.status === 'Review' ? <Clock3 size={13} /> : null}
+                                {item.status}
+                            </span>
+
+                            <span className={styles.confidence}>{item.confidence}%</span>
                         </div>
-
-                        <span>MAT-2048</span>
-                        <span>SS-304-SHT</span>
-
-                        <span
-                            className={`${styles.status} ${styles.completed}`}
-                        >
-                            <CheckCircle2 size={13} />
-                            Harmonized
-                        </span>
-
-                        <span className={styles.confidence}>98%</span>
-                    </div>
-
-                    <div className={styles.tableRow}>
-                        <div className={styles.materialName}>
-                            <div className={styles.tableIcon}>
-                                <Package size={15} />
-                            </div>
-
-                            <div>
-                                <strong>Industrial Rubber Seal</strong>
-                                <small>Rubber Products</small>
-                            </div>
-                        </div>
-
-                        <span>MAT-1982</span>
-                        <span>RBR-SEAL-IND</span>
-
-                        <span
-                            className={`${styles.status} ${styles.completed}`}
-                        >
-                            <CheckCircle2 size={13} />
-                            Harmonized
-                        </span>
-
-                        <span className={styles.confidence}>96%</span>
-                    </div>
-
-                    <div className={styles.tableRow}>
-                        <div className={styles.materialName}>
-                            <div className={styles.tableIcon}>
-                                <Package size={15} />
-                            </div>
-
-                            <div>
-                                <strong>Aluminium Rod</strong>
-                                <small>Non-Ferrous Metals</small>
-                            </div>
-                        </div>
-
-                        <span>MAT-1756</span>
-                        <span>AL-ROD-6061</span>
-
-                        <span className={`${styles.status} ${styles.review}`}>
-                            <Clock3 size={13} />
-                            Review
-                        </span>
-
-                        <span className={styles.confidence}>82%</span>
-                    </div>
+                    ))}
                 </div>
             </div>
         </div>

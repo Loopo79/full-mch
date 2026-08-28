@@ -1,0 +1,97 @@
+.dashboardLayout {
+  display: flex;
+  min-height: 100vh;
+
+  background: #f5f7fb;
+}
+
+.mainContent {
+  flex: 1;
+
+  min-width: 0;
+}
+
+.topbar {
+  height: 72px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 0 32px;
+
+  background: #ffffff;
+
+  border-bottom: 1px solid #e7eaf0;
+}
+
+.topbar h3 {
+  color: #172033;
+
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.topbarRight {
+  display: flex;
+  align-items: center;
+
+  gap: 12px;
+}
+
+.iconButton {
+  width: 34px;
+  height: 34px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid #e4e7ed;
+  border-radius: 8px;
+
+  background: #ffffff;
+
+  cursor: pointer;
+}
+
+.profile {
+  display: flex;
+  align-items: center;
+
+  gap: 8px;
+
+  margin-left: 8px;
+
+  color: #30394a;
+
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.profileName {
+  font-size: 13px;
+  font-weight: 600;
+  color: #172033;
+}
+
+.profileAvatar {
+  width: 32px;
+  height: 32px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: #e8ecf3;
+  color: #172033;
+
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.content {
+  padding: 32px;
+}

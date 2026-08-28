@@ -1,0 +1,459 @@
+:root {
+    --bg-card: #ffffff;
+    --border-color: #e2e8f0;
+    --border-focus: #0f172a;
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #94a3b8;
+    --primary: #0f172a;
+    --primary-hover: #1e293b;
+    --primary-subtle: #f1f5f9;
+    --error-bg: #fef2f2;
+    --error-border: #fecaca;
+    --error-text: #b91c1c;
+}
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2.5rem 2rem;
+    font-family:
+        -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: var(--text-primary);
+}
+
+.header {
+    margin-bottom: 1.75rem;
+}
+
+.title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin: 0 0 0.25rem 0;
+}
+
+.subtitle {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.workspace {
+    display: grid;
+    grid-template-columns: 400px minmax(0, 1fr);
+    gap: 1.5rem;
+    align-items: start;
+}
+
+@media (max-width: 1024px) {
+    .workspace {
+        grid-template-columns: 1fr;
+    }
+}
+
+.controlColumn {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.previewColumn {
+    min-width: 0;
+}
+
+.card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1.25rem;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04);
+}
+
+.cardHeader {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    margin-bottom: 1rem;
+}
+
+.stepBadge {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: #ffffff;
+    font-size: 0.75rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.cardTitle {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.cardDescription {
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+    margin: 0.125rem 0 0 0;
+}
+
+/* Upload Dropzone */
+.dropzone {
+    border: 1.5px dashed #cbd5e1;
+    border-radius: 8px;
+    padding: 1.75rem 1rem;
+    text-align: center;
+    cursor: pointer;
+    background: #fafafa;
+    transition: all 0.2s ease-in-out;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.dropzone:hover,
+.dropzone.dragging {
+    border-color: var(--primary);
+    background: var(--primary-subtle);
+}
+
+.uploadIconBadge {
+    width: 40px;
+    height: 40px;
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    margin-bottom: 0.625rem;
+}
+
+.uploadTextGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+}
+
+.uploadPrimaryText {
+    font-size: 0.8438rem;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.uploadPrimaryText span {
+    color: var(--primary);
+    font-weight: 600;
+}
+
+.uploadSecondaryText {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+/* Active File State */
+.activeFileBar {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 0.875rem;
+    background: #f8fafc;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+}
+
+.fileIconBox {
+    width: 36px;
+    height: 36px;
+    background: var(--primary-subtle);
+    color: var(--primary);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.fileDetails {
+    flex: 1;
+    min-width: 0;
+}
+
+.fileName {
+    display: block;
+    font-size: 0.8438rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.fileMeta {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-top: 0.125rem;
+}
+
+.metaDivider {
+    color: #cbd5e1;
+}
+
+.removeButton {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+}
+
+.removeButton:hover {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+/* Mapping Controls */
+.mappingList {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.fieldItem {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3125rem;
+}
+
+.fieldLabelRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.fieldItem label {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.requiredMark {
+    color: #ef4444;
+    margin-left: 0.2rem;
+}
+
+.fieldHint {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.selectWrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.selectInput {
+    width: 100%;
+    appearance: none;
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 0.5rem 2rem 0.5rem 0.75rem;
+    font-size: 0.8438rem;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition:
+        border-color 0.15s ease,
+        box-shadow 0.15s ease;
+}
+
+.selectInput:focus {
+    outline: none;
+    border-color: var(--border-focus);
+    box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.08);
+}
+
+.selectEmpty {
+    color: var(--text-muted);
+}
+
+.selectIcon {
+    position: absolute;
+    right: 0.75rem;
+    color: var(--text-muted);
+    pointer-events: none;
+}
+
+.actionFooter {
+    margin-top: 1.25rem;
+}
+
+.submitBtn {
+    width: 100%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.625rem 1rem;
+    background: var(--primary);
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.8438rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+
+.submitBtn:hover {
+    background: var(--primary-hover);
+}
+
+.alertError {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    background: var(--error-bg);
+    border: 1px solid var(--error-border);
+    border-radius: 6px;
+    color: var(--error-text);
+    font-size: 0.8125rem;
+    margin-top: 0.875rem;
+}
+
+/* Preview Table Panel */
+.previewCard {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.previewTitleGroup {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.emptyState {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4.5rem 2rem;
+    text-align: center;
+    background: #fafafa;
+    border: 1px dashed var(--border-color);
+    border-radius: 8px;
+}
+
+.emptyIconBadge {
+    width: 48px;
+    height: 48px;
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    margin-bottom: 0.875rem;
+}
+
+.emptyState h3 {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 0.25rem 0;
+}
+
+.emptyState p {
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+    max-width: 300px;
+    margin: 0;
+}
+
+.tableContainer {
+    overflow-x: auto;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    max-height: 560px;
+}
+
+.dataTable {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.8125rem;
+    text-align: left;
+}
+
+.dataTable th {
+    background: #f8fafc;
+    padding: 0.625rem 0.875rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border-color);
+    white-space: nowrap;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.thMapped {
+    background: var(--primary-subtle) !important;
+    color: var(--text-primary) !important;
+    font-weight: 700 !important;
+}
+
+.mappedDot {
+    display: inline-block;
+    width: 5px;
+    height: 5px;
+    background: var(--primary);
+    border-radius: 50%;
+    margin-left: 0.375rem;
+}
+
+.dataTable td {
+    padding: 0.625rem 0.875rem;
+    border-bottom: 1px solid #f1f5f9;
+    white-space: nowrap;
+    color: var(--text-primary);
+}
+
+.dataTable tbody tr:hover td {
+    background: #f8fafc;
+}
+
+.colIndex {
+    width: 40px;
+    color: var(--text-muted);
+    font-weight: 500;
+    text-align: center;
+    background: #fafafa;
+}
+
+.nullCell {
+    color: #cbd5e1;
+}
